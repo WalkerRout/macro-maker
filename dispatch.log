@@ -1,0 +1,57 @@
+2024-05-15 06:33:19 UTC - STARTING
+2024-05-15 06:33:23 UTC - running command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')"
+2024-05-15 06:33:23 UTC - running command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')"
+2024-05-15 06:33:24 UTC - command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')" succeeded with exit code: 0
+2024-05-15 06:33:24 UTC - command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')" succeeded with exit code: 0
+2024-05-15 06:33:25 UTC - exiting gracefully after exit key pressed
+2024-05-15 06:33:25 UTC - sender hung, dropping processes for graceful exit
+2024-05-15 06:33:25 UTC - STOPPING
+2024-05-15 06:35:26 UTC - STARTING
+2024-05-15 06:35:31 UTC - running command firefox -private-window https://hurawatch.bz/tv/south-park-j2ywy/
+2024-05-15 06:35:31 UTC - running command firefox -private-window https://hurawatch.bz/tv/south-park-j2ywy/
+2024-05-15 06:35:32 UTC - command firefox -private-window https://hurawatch.bz/tv/south-park-j2ywy/ succeeded with exit code: 0
+2024-05-15 06:35:34 UTC - running command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')"
+2024-05-15 06:35:35 UTC - running command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')"
+2024-05-15 06:35:38 UTC - command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')" succeeded with exit code: 0
+2024-05-15 06:35:39 UTC - exiting gracefully after exit key pressed
+2024-05-15 06:35:39 UTC - sender hung, dropping processes for graceful exit
+2024-05-15 06:35:39 UTC - STOPPING
+
+2024-05-15 06:37:36 UTC - STARTING
+2024-05-15 06:37:39 UTC - running command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')"
+2024-05-15 06:37:40 UTC - running command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')"
+2024-05-15 06:37:41 UTC - command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')" succeeded with exit code: 0
+2024-05-15 06:37:41 UTC - command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')" succeeded with exit code: 0
+2024-05-15 06:37:42 UTC - exiting gracefully after exit key pressed
+2024-05-15 06:37:42 UTC - sender hung, dropping processes for graceful exit
+2024-05-15 06:37:42 UTC - STOPPING
+
+2024-05-15 06:39:12 UTC INFO - STARTING
+2024-05-15 06:39:15 UTC INFO - running command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')"
+2024-05-15 06:39:15 UTC INFO - running command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')"
+2024-05-15 06:39:16 UTC INFO - running command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')"
+2024-05-15 06:39:18 UTC INFO - command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')" succeeded with exit code: 0
+2024-05-15 06:39:18 UTC INFO - command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')" succeeded with exit code: 0
+2024-05-15 06:39:18 UTC INFO - command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')" succeeded with exit code: 0
+2024-05-15 06:39:19 UTC INFO - exiting gracefully after exit key pressed
+2024-05-15 06:39:19 UTC WARN - sender hung, dropping processes for graceful exit
+2024-05-15 06:39:19 UTC INFO - STOPPING
+
+2024-05-15 06:41:02 UTC INFO - STARTING
+2024-05-15 06:41:22 UTC INFO - running command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')"
+2024-05-15 06:41:22 UTC INFO - running command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')"
+2024-05-15 06:41:24 UTC INFO - command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')" succeeded with exit code: 0
+2024-05-15 06:41:24 UTC INFO - command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')" succeeded with exit code: 0
+2024-05-15 06:42:17 UTC INFO - exiting gracefully after exit key pressed
+2024-05-15 06:42:17 UTC WARN - sender hung, dropping processes for graceful exit
+2024-05-15 06:42:17 UTC INFO - STOPPING
+
+2024-05-15 06:43:24 UTC INFO - STARTING
+2024-05-15 06:43:28 UTC INFO - running command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')"
+2024-05-15 06:43:29 UTC INFO - running command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')"
+2024-05-15 06:43:30 UTC INFO - command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')" succeeded with exit code: 0
+2024-05-15 06:43:31 UTC INFO - command PowerShell -Command "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('Daemon Running')" succeeded with exit code: 0
+2024-05-15 06:43:32 UTC INFO - exiting gracefully after exit key pressed
+2024-05-15 06:43:32 UTC WARN - sender hung, dropping processes for graceful exit
+2024-05-15 06:43:32 UTC INFO - STOPPING
+
