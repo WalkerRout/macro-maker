@@ -1,4 +1,4 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap, fs, mem, ops::Deref, path::Path, str::FromStr};
 
 use global_hotkey::hotkey::{Code, HotKey, Modifiers as Mods};
 use serde::Deserialize;
@@ -72,4 +72,50 @@ impl From<Config> for HashMap<HotKey, String> {
       .collect::<Vec<_>>();
     keys.into_iter().zip(scripts).collect()
   }
+}
+
+#[derive(Debug, Default)]
+pub struct KeyMap(HashMap<HotKey, String>);
+
+impl KeyMap {
+  pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, anyhow::Error> {
+    let dispatch_toml = fs::read_to_string(path)?;
+    let config: Config = toml::from_str(&dispatch_toml)?;
+    Ok(Self(config.into()))
+  }
+}
+
+impl Deref for KeyMap {
+  type Target = HashMap<HotKey, String>;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
+
+#[derive(Debug, Default)]
+pub struct KeyIdMap(HashMap<u32, String>);
+
+impl From<KeyMap> for KeyIdMap {
+  fn from(mut key_map: KeyMap) -> Self {
+    let mut map = HashMap::with_capacity(key_map.len());
+    for (hotkey, value) in mem::take(&mut key_map.0) {
+      map.insert(hotkey.id(), value);
+    }
+    Self(map)
+  }
+}
+
+impl Deref for KeyIdMap {
+  type Target = HashMap<u32, String>;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
+
+pub fn exit_key() -> HotKey {
+  let key_code = Code::KeyE;
+  let modifiers = Mods::SHIFT | Mods::CONTROL | Mods::ALT;
+  HotKey::new(Some(modifiers), key_code)
 }

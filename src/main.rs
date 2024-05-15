@@ -2,8 +2,8 @@
 
 use log::LevelFilter;
 use log4rs::{
-  config::{self as cfg, Root, Appender},
   append::file::FileAppender,
+  config::{self as cfg, Appender, Root},
   encode::pattern::PatternEncoder,
 };
 
@@ -12,6 +12,8 @@ use dispatcher::Dispatcher;
 mod command;
 mod config;
 mod dispatcher;
+mod processor;
+mod transmitter;
 
 fn run() -> Result<(), anyhow::Error> {
   #[cfg(target_os = "macos")]
@@ -28,9 +30,7 @@ fn run() -> Result<(), anyhow::Error> {
   {
     let mut dispatcher = Dispatcher::from_path("dispatch.toml")?;
     log::info!("STARTING");
-    if let Err(e) = dispatcher.listen() {
-      log::error!("exit with error: {e}");
-    }
+    dispatcher.listen();
     log::info!("STOPPING\n");
   }
 
@@ -39,14 +39,14 @@ fn run() -> Result<(), anyhow::Error> {
 
 fn main() -> Result<(), anyhow::Error> {
   let log_file = FileAppender::builder()
-    .encoder(Box::new(PatternEncoder::new("{d(%Y-%m-%d %H:%M:%S %Z)(utc)} {l} - {m}{n}")))
-    .build(format!("dispatch.log"))?;
+    .encoder(Box::new(PatternEncoder::new(
+      "{d(%Y-%m-%d %H:%M:%S %Z)(utc)} {l} - {m}{n}",
+    )))
+    .build("dispatch.log")?;
 
   let config = cfg::Config::builder()
     .appender(Appender::builder().build("log", Box::new(log_file)))
-    .build(Root::builder()
-      .appender("log")
-      .build(LevelFilter::Info))?;
+    .build(Root::builder().appender("log").build(LevelFilter::Info))?;
 
   log4rs::init_config(config)?;
 
