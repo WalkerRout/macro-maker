@@ -1,4 +1,5 @@
-2024-05-15 06:33:19 UTC - STARTING
-2024-05-15 06:35:39 UTC - exiting gracefully after exit key pressed
-2024-05-15 06:35:39 UTC - sender hung, dropping processes for graceful exit
-2024-05-15 06:35:39 UTC - STOPPING
+2024-05-15 20:57:53 -07:00 61844 INFO - STARTING
+2024-05-15 21:00:45 -07:00 61844 INFO - exiting gracefully after exit key pressed
+2024-05-15 21:00:45 -07:00 62328 WARN - Transmitter hung, stopping Processor for graceful exit
+2024-05-15 21:00:45 -07:00 61844 INFO - STOPPING
+

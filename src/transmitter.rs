@@ -1,58 +1,96 @@
+use std::mem;
 use std::sync::mpsc::Sender;
 
-use global_hotkey::{GlobalHotKeyEvent, HotKeyState};
+use global_hotkey::hotkey::HotKey;
+use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, HotKeyState};
 use winit::event_loop::{ControlFlow, EventLoopBuilder, EventLoopWindowTarget};
 
-use crate::config::{exit_key, KeyIdMap};
+use crate::manager::{exit_key, Manager};
+use crate::{Dispatchable, Script};
 
 #[derive(Debug)]
 pub struct Transmitter {
-  tx: Sender<String>,
+  tx: Option<Sender<Script>>,
 }
 
 impl Transmitter {
-  pub fn new(tx: Sender<String>) -> Self {
-    Self { tx }
+  pub fn with_sender(tx: Sender<Script>) -> Self {
+    Self { tx: Some(tx) }
   }
 
-  pub fn spin(&mut self, key_map: KeyIdMap) {
+  pub fn spin<T>(&mut self, manager: &Manager<T>)
+  where
+    T: Dispatchable,
+  {
+    let hotkey_manager = GlobalHotKeyManager::new().expect("global hotkey manager");
+    hotkey_manager_register_keys(&hotkey_manager, &manager.hotkeys());
+
     let event_loop = EventLoopBuilder::new()
       .build()
       .expect("event loop spun twice");
     let global_hotkey_channel = GlobalHotKeyEvent::receiver();
+
     event_loop
       .run(move |_event, event_loop| {
         event_loop.set_control_flow(ControlFlow::Poll);
+        if let Ok(()) = manager.try_update() {
+          let hotkeys = manager.hotkeys();
+          hotkey_manager_register_keys(&hotkey_manager, &hotkeys);
+          log::info!("reloaded hotkey manager");
+        }
         if let Ok(event) = global_hotkey_channel.try_recv() {
-          self.process_event(event, event_loop, &key_map);
+          self.process_event(event, event_loop, manager);
         }
       })
       .expect("run event loop");
   }
 
-  fn process_event(
+  fn process_event<T>(
     &mut self,
     event: GlobalHotKeyEvent,
     event_loop: &EventLoopWindowTarget<()>,
-    key_map: &KeyIdMap,
-  ) {
-    // exit
+    manager: &Manager<T>,
+  ) where
+    T: Dispatchable,
+  {
+    macro_rules! exit {
+      () => {
+        log::info!("exiting gracefully after exit key pressed");
+        // drop sender to stop processor
+        drop(mem::take(&mut self.tx));
+        event_loop.exit();
+      };
+    }
+
     if event.id == exit_key().id() {
-      log::info!("exiting gracefully after exit key pressed");
-      event_loop.exit();
+      exit!();
       return;
     }
-    // TODO: check if things changed in file...
-    // - if they did, reload self with the dispatch path!
-    if let Some(command) = key_map.get(&event.id) {
-      if event.state == HotKeyState::Pressed {
-        if let Err(cmd) = self.tx.send(command.clone()) {
-          log::info!("exiting unsuccessfully after trying to send {cmd} to dropped Processor");
-          event_loop.exit();
+
+    if event.state == HotKeyState::Pressed {
+      if let Some(script) = manager.resolve(event.id) {
+        if event.state == HotKeyState::Pressed {
+          if let Some(ref tx) = self.tx {
+            if let Err(_) = tx.send(script) {
+              exit!();
+            }
+          }
         }
+      } else {
+        log::error!("registered macro does not have corresponding script");
       }
-    } else {
-      log::error!("registered macro does not have corresponding script");
     }
   }
+}
+
+/// Put GlobalHotKeyManager in a valid state
+fn hotkey_manager_register_keys(manager: &GlobalHotKeyManager, keys: &[HotKey]) {
+  // register one by one, since some may already be registered...
+  for key in keys {
+    let _ = manager.register(*key);
+  }
+  // try to unregister exit key
+  let _ = manager.unregister(exit_key());
+  // re-register exit key for use by system
+  let _ = manager.register(exit_key());
 }

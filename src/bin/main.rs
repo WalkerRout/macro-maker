@@ -7,13 +7,7 @@ use log4rs::{
   encode::pattern::PatternEncoder,
 };
 
-use dispatcher::Dispatcher;
-
-mod command;
-mod config;
-mod dispatcher;
-mod processor;
-mod transmitter;
+use macro_maker::dispatcher::Dispatcher;
 
 fn run() -> Result<(), anyhow::Error> {
   #[cfg(target_os = "macos")]
@@ -40,7 +34,7 @@ fn run() -> Result<(), anyhow::Error> {
 fn main() -> Result<(), anyhow::Error> {
   let log_file = FileAppender::builder()
     .encoder(Box::new(PatternEncoder::new(
-      "{d(%Y-%m-%d %H:%M:%S %Z)(utc)} {l} - {m}{n}",
+      "{d(%Y-%m-%d %H:%M:%S %Z)} {I} {h({l})} - {m}{n}",
     )))
     .build("dispatch.log")?;
 

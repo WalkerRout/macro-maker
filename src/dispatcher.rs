@@ -1,43 +1,35 @@
-use std::mem;
 use std::path::Path;
 use std::sync::mpsc;
 
-use global_hotkey::GlobalHotKeyManager;
-
-use crate::config::{exit_key, KeyIdMap, KeyMap};
+use crate::manager::{Config, Manager};
 use crate::processor::Processor;
 use crate::transmitter::Transmitter;
+use crate::Script;
 
-// handle dispatching between keybinds and scripts\
+/// Handles registering a file and starting the event loop
 pub struct Dispatcher {
-  key_map: KeyIdMap,
-  _manager: GlobalHotKeyManager,
+  manager: Manager<Config>,
+  processor: Processor,
+  transmitter: Transmitter,
 }
 
 impl Dispatcher {
-  pub fn new(key_map: KeyIdMap, _manager: GlobalHotKeyManager) -> Self {
-    // remove exit key if accidentally registered by user
-    if _manager.unregister(exit_key()).is_ok() {
-      log::warn!("do not register Ctrl+Shift+Alt+KeyE; it is the built in exit key");
-    }
-    // re-register exit key for use by system
-    let _ = _manager.register(exit_key());
-    Self { key_map, _manager }
-  }
-
   pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Self, anyhow::Error> {
-    let key_map = KeyMap::from_file(path)?;
-    let manager = GlobalHotKeyManager::new()?;
-    for key in key_map.keys() {
-      let _ = manager.register(*key);
-    }
-    Ok(Self::new(key_map.into(), manager))
+    let (script_tx, script_rx) = mpsc::channel::<Script>();
+
+    let manager = Manager::with_path(path)?;
+    let processor = Processor::with_receiver(script_rx);
+    let transmitter = Transmitter::with_sender(script_tx);
+
+    Ok(Self {
+      manager,
+      processor,
+      transmitter,
+    })
   }
 
   pub fn listen(&mut self) {
-    let (tx, rx) = mpsc::channel::<String>();
-    let mut processor = Processor::new(rx);
-    let _handle = processor.spawn(); // ProcessorHandle
-    Transmitter::new(tx).spin(mem::take(&mut self.key_map));
+    let _processor_handle = self.processor.spin();
+    self.transmitter.spin(&self.manager);
   }
 }
