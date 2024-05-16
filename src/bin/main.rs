@@ -17,13 +17,18 @@ fn run() -> Result<(), anyhow::Error> {
 
   #[cfg(target_os = "linux")]
   {
-    unimplemented!()
+    // run with:
+    // $ nohup main &> /dev/null &
+    log::info!("STARTING");
+    let mut dispatcher = Dispatcher::from_path("dispatch.toml")?;
+    dispatcher.listen();
+    log::info!("STOPPING");
   }
 
   #[cfg(target_os = "windows")]
   {
-    let mut dispatcher = Dispatcher::from_path("dispatch.toml")?;
     log::info!("STARTING");
+    let mut dispatcher = Dispatcher::from_path("dispatch.toml")?;
     dispatcher.listen();
     log::info!("STOPPING\n");
   }

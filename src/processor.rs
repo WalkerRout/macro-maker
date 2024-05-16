@@ -19,6 +19,8 @@ impl<'a> Drop for ProcessorGuard<'a> {
     if let Some(handle) = mem::take(&mut self.handle) {
       if let Err(e) = handle.join() {
         log::error!("failed to join Processor with {e:?}");
+      } else {
+        log::info!("Processor terminated")
       }
     }
   }
@@ -54,7 +56,7 @@ impl Processor {
             });
           } else {
             log::warn!("Transmitter hung, stopping Processor for graceful exit");
-            break;
+            return;
           }
         }
       })

@@ -1,6 +1,6 @@
 use std::mem;
-use std::thread;
 use std::sync::mpsc::Sender;
+use std::thread;
 
 use global_hotkey::hotkey::HotKey;
 use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, HotKeyState};
@@ -30,9 +30,14 @@ impl Transmitter {
       .build()
       .expect("event loop spun twice");
     let global_hotkey_channel = GlobalHotKeyEvent::receiver();
+    let mut terminate = false;
 
     event_loop
       .run(move |_event, event_loop| {
+        if terminate {
+          event_loop.exit();
+          return;
+        }
         event_loop.set_control_flow(ControlFlow::Poll);
         if let Ok(()) = manager.try_update() {
           let hotkeys = manager.hotkeys();
@@ -40,12 +45,13 @@ impl Transmitter {
           log::info!("reloaded hotkey manager");
         }
         if let Ok(event) = global_hotkey_channel.try_recv() {
-          self.process_event(event, event_loop, manager);
+          terminate = !self.process_event(event, event_loop, manager);
         }
         // avoid spinning and eating up cpu
         thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
       })
       .expect("run event loop");
+    log::info!("Transmitter terminated");
   }
 
   fn process_event<T>(
@@ -53,35 +59,43 @@ impl Transmitter {
     event: GlobalHotKeyEvent,
     event_loop: &EventLoopWindowTarget<()>,
     manager: &Manager<T>,
-  ) where
+  ) -> bool
+  where
     T: Dispatchable,
   {
     macro_rules! exit {
       () => {
-        log::info!("exiting gracefully after exit key pressed");
         // drop sender to stop processor
         drop(mem::take(&mut self.tx));
         event_loop.exit();
+        return false;
       };
     }
 
     if event.id == exit_key().id() {
+      log::info!("exiting gracefully after exit key pressed");
       exit!();
-      return;
     }
 
     if event.state == HotKeyState::Pressed {
       if let Some(script) = manager.resolve(event.id) {
-        if event.state == HotKeyState::Pressed && self.tx
-          .as_ref()
-          .expect("self.tx is only None at drop")
-          .send(script).is_err() {
+        if event.state == HotKeyState::Pressed
+          && self
+            .tx
+            .as_ref()
+            .expect("self.tx is only None at drop")
+            .send(script)
+            .is_err()
+        {
+          log::info!("exiting after Processor hung");
           exit!();
         }
       } else {
         log::error!("registered macro does not have corresponding script");
       }
     }
+
+    true
   }
 }
 
