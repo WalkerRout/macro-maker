@@ -1,4 +1,5 @@
 use std::mem;
+use std::thread;
 use std::sync::mpsc::Sender;
 
 use global_hotkey::hotkey::HotKey;
@@ -41,6 +42,8 @@ impl Transmitter {
         if let Ok(event) = global_hotkey_channel.try_recv() {
           self.process_event(event, event_loop, manager);
         }
+        // avoid spinning and eating up cpu
+        thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
       })
       .expect("run event loop");
   }
