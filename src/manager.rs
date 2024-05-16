@@ -56,7 +56,7 @@ pub struct Manager<T> {
 impl<T> Manager<T> {
   pub fn with_path<P: AsRef<Path>>(path: P) -> Result<Self, anyhow::Error>
   where
-    T: for<'a> Deserialize<'a> + Send + Default + Dispatchable + 'static,
+    T: for<'a> Deserialize<'a> + Dispatchable + Send + Default + 'static,
   {
     let dispatch_toml = fs::read_to_string(&path)?;
     // config can be in an unstable state in the beginning; it will start with 0 keybinds
