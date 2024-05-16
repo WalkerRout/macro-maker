@@ -33,9 +33,7 @@ impl Monitor {
           if let Ok(toml) = fs::read_to_string(opath.clone()) {
             if let Ok(new_config) = toml::from_str::<T>(&toml) {
               // successful interpretation of config - update it!
-              {
-                *config.lock().unwrap() = new_config;
-              }
+              *config.lock().unwrap() = new_config;
               let _ = update_tx.send(());
             }
           }
@@ -128,7 +126,6 @@ impl Command {
   fn modifiers(&self) -> Mods {
     let def = Mods::empty();
     let get = |b, mod_type| if b { mod_type } else { def };
-
     #[rustfmt::skip]
     let mods = self.modifiers.alt.map_or(def, |b| get(b, Mods::ALT))
       | self.modifiers.meta.map_or(def, |b| get(b, Mods::META))

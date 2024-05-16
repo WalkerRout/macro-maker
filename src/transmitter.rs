@@ -69,12 +69,11 @@ impl Transmitter {
 
     if event.state == HotKeyState::Pressed {
       if let Some(script) = manager.resolve(event.id) {
-        if event.state == HotKeyState::Pressed {
-          if let Some(ref tx) = self.tx {
-            if let Err(_) = tx.send(script) {
-              exit!();
-            }
-          }
+        if event.state == HotKeyState::Pressed && self.tx
+          .as_ref()
+          .expect("self.tx is only None at drop")
+          .send(script).is_err() {
+          exit!();
         }
       } else {
         log::error!("registered macro does not have corresponding script");
