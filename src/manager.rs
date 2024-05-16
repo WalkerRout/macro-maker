@@ -125,6 +125,7 @@ impl Command {
 
   fn modifiers(&self) -> Mods {
     let def = Mods::empty();
+    // if b is true return mod_type, otherwise default modifiers for all options
     let get = |b, mod_type| if b { mod_type } else { def };
     #[rustfmt::skip]
     let mods = self.modifiers.alt.map_or(def, |b| get(b, Mods::ALT))
@@ -135,8 +136,7 @@ impl Command {
   }
 
   fn key_code(&self) -> Code {
-    use std::str::FromStr;
-    Code::from_str(&self.hotkey).unwrap()
+    <Code as std::str::FromStr>::from_str(&self.hotkey).unwrap()
   }
 }
 

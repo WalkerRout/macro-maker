@@ -46,16 +46,15 @@ impl Processor {
       };
 
       rt.block_on(async {
-        if let Some(rx) = rx {
-          loop {
-            if let Ok(cmd_str) = rx.recv() {
-              tokio::spawn(async move {
-                execute_command(cmd_str.0).await;
-              });
-            } else {
-              log::warn!("Transmitter hung, stopping Processor for graceful exit");
-              break;
-            }
+        let rx = rx.expect("self.rx should start with a valid state of Some(_)");
+        loop {
+          if let Ok(cmd_str) = rx.recv() {
+            tokio::spawn(async move {
+              execute_command(cmd_str.0).await;
+            });
+          } else {
+            log::warn!("Transmitter hung, stopping Processor for graceful exit");
+            break;
           }
         }
       })
