@@ -4,24 +4,33 @@ use std::sync::mpsc;
 use crate::manager::{Config, Manager};
 use crate::processor::Processor;
 use crate::transmitter::Transmitter;
-use crate::Script;
+use crate::{Process, Script, Transmit};
 
 /// Handles registering a file and starting the event loop
-pub struct Dispatcher {
+pub struct Dispatcher<P, T> {
   manager: Manager<Config>,
-  processor: Processor,
-  transmitter: Transmitter,
+  processor: P,
+  transmitter: T,
 }
 
-impl Dispatcher {
-  pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Self, anyhow::Error> {
+pub type DefaultDispatcher = Dispatcher<Processor, Transmitter>;
+
+impl<P, T> Dispatcher<P, T>
+where
+  P: Process,
+  T: Transmit,
+{
+  pub fn from_path<F>(path: F) -> Result<DefaultDispatcher, anyhow::Error>
+  where
+    F: AsRef<Path>,
+  {
     let (script_tx, script_rx) = mpsc::channel::<Script>();
 
     let manager = Manager::with_path(path)?;
     let processor = Processor::with_receiver(script_rx);
     let transmitter = Transmitter::with_sender(script_tx);
 
-    Ok(Self {
+    Ok(DefaultDispatcher {
       manager,
       processor,
       transmitter,
@@ -29,7 +38,13 @@ impl Dispatcher {
   }
 
   pub fn listen(&mut self) {
-    let _processor_handle = self.processor.spin();
-    self.transmitter.spin(&self.manager);
+    let _phandle = self.processor.process_incoming_scripts();
+    self.transmitter.listen_for_hotkeys(&self.manager);
   }
 }
+
+/*
+
+
+
+*/

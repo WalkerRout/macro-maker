@@ -1,5 +1,4 @@
 use std::mem;
-use std::sync::mpsc::Sender;
 use std::thread;
 
 use global_hotkey::hotkey::HotKey;
@@ -7,7 +6,7 @@ use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, HotKeyState};
 use winit::event_loop::{ControlFlow, EventLoopBuilder, EventLoopWindowTarget};
 
 use crate::manager::{exit_key, Manager};
-use crate::{Dispatchable, Script};
+use crate::{Dispatch, Script, Sender, Transmit};
 
 #[derive(Debug)]
 pub struct Transmitter {
@@ -15,45 +14,6 @@ pub struct Transmitter {
 }
 
 impl Transmitter {
-  pub fn with_sender(tx: Sender<Script>) -> Self {
-    Self { tx: Some(tx) }
-  }
-
-  pub fn spin<T>(&mut self, manager: &Manager<T>)
-  where
-    T: Dispatchable,
-  {
-    let hotkey_manager = GlobalHotKeyManager::new().expect("global hotkey manager");
-    hotkey_manager_register_keys(&hotkey_manager, &manager.hotkeys());
-
-    let event_loop = EventLoopBuilder::new()
-      .build()
-      .expect("event loop spun twice");
-    let global_hotkey_channel = GlobalHotKeyEvent::receiver();
-    let mut terminate = false;
-
-    event_loop
-      .run(move |_event, event_loop| {
-        if terminate {
-          event_loop.exit();
-          return;
-        }
-        event_loop.set_control_flow(ControlFlow::Poll);
-        if let Ok(()) = manager.try_update() {
-          let hotkeys = manager.hotkeys();
-          hotkey_manager_register_keys(&hotkey_manager, &hotkeys);
-          log::info!("reloaded hotkey manager");
-        }
-        if let Ok(event) = global_hotkey_channel.try_recv() {
-          terminate = !self.process_event(event, event_loop, manager);
-        }
-        // avoid spinning and eating up cpu
-        thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
-      })
-      .expect("run event loop");
-    log::info!("Transmitter terminated");
-  }
-
   fn process_event<T>(
     &mut self,
     event: GlobalHotKeyEvent,
@@ -61,7 +21,7 @@ impl Transmitter {
     manager: &Manager<T>,
   ) -> bool
   where
-    T: Dispatchable,
+    T: Dispatch,
   {
     macro_rules! exit {
       () => {
@@ -96,6 +56,47 @@ impl Transmitter {
     }
 
     true
+  }
+}
+
+impl Transmit for Transmitter {
+  fn with_sender(tx: Sender<Script>) -> Self {
+    Self { tx: Some(tx) }
+  }
+
+  fn listen_for_hotkeys<T>(&mut self, manager: &Manager<T>)
+  where
+    T: Dispatch,
+  {
+    let hotkey_manager = GlobalHotKeyManager::new().expect("global hotkey manager");
+    hotkey_manager_register_keys(&hotkey_manager, &manager.hotkeys());
+
+    let event_loop = EventLoopBuilder::new()
+      .build()
+      .expect("event loop spun twice");
+    let global_hotkey_channel = GlobalHotKeyEvent::receiver();
+    let mut terminate = false;
+
+    event_loop
+      .run(move |_event, event_loop| {
+        if terminate {
+          event_loop.exit();
+          return;
+        }
+        event_loop.set_control_flow(ControlFlow::Poll);
+        if let Ok(()) = manager.try_update() {
+          let hotkeys = manager.hotkeys();
+          hotkey_manager_register_keys(&hotkey_manager, &hotkeys);
+          log::info!("reloaded hotkey manager");
+        }
+        if let Ok(event) = global_hotkey_channel.try_recv() {
+          terminate = !self.process_event(event, event_loop, manager);
+        }
+        // avoid spinning and eating up cpu
+        thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
+      })
+      .expect("run event loop");
+    log::info!("Transmitter terminated");
   }
 }
 

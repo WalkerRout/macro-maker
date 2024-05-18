@@ -1,42 +1,23 @@
 use std::marker::PhantomData;
 use std::mem;
-use std::sync::mpsc::Receiver;
-use std::thread::{self, JoinHandle};
+use std::thread;
 
 use async_process::Command;
 use tokio::runtime::Builder;
 
-use crate::Script;
-
-#[derive(Debug)]
-pub struct ProcessorGuard<'a> {
-  handle: Option<JoinHandle<()>>,
-  _phantom: PhantomData<&'a ()>,
-}
-
-impl<'a> Drop for ProcessorGuard<'a> {
-  fn drop(&mut self) {
-    if let Some(handle) = mem::take(&mut self.handle) {
-      if let Err(e) = handle.join() {
-        log::error!("failed to join Processor with {e:?}");
-      } else {
-        log::info!("Processor terminated")
-      }
-    }
-  }
-}
+use crate::{Process, ProcessorGuard, Receiver, Script};
 
 #[derive(Debug, Default)]
 pub struct Processor {
   rx: Option<Receiver<Script>>,
 }
 
-impl Processor {
-  pub fn with_receiver(rx: Receiver<Script>) -> Self {
+impl Process for Processor {
+  fn with_receiver(rx: Receiver<Script>) -> Self {
     Self { rx: Some(rx) }
   }
 
-  pub fn spin(&mut self) -> ProcessorGuard<'_> {
+  fn process_incoming_scripts(&mut self) -> ProcessorGuard<'_> {
     let rx = mem::take(&mut self.rx);
     let handle = thread::spawn(|| {
       let rt = match Builder::new_multi_thread().build() {
@@ -78,7 +59,10 @@ async fn execute_command(cmd_str: String) {
   }
 }
 
-fn command<S: AsRef<str>>(cmd: S) -> Command {
+fn command<C>(cmd: C) -> Command
+where
+  C: AsRef<str>,
+{
   let tokens = command_tokens(cmd);
   if tokens.is_empty() {
     Command::new("")
@@ -95,7 +79,10 @@ fn command<S: AsRef<str>>(cmd: S) -> Command {
   }
 }
 
-fn command_tokens<S: AsRef<str>>(cmd: S) -> Vec<String> {
+fn command_tokens<C>(cmd: C) -> Vec<String>
+where
+  C: AsRef<str>,
+{
   let cmd = cmd.as_ref();
 
   let mut tokens = Vec::with_capacity(1);

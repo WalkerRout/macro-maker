@@ -7,7 +7,7 @@ use global_hotkey::hotkey::{Code, HotKey, Modifiers as Mods};
 use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use serde::Deserialize;
 
-use crate::{Dispatchable, Script}; // DeserializeOwned
+use crate::{Dispatch, Script}; // DeserializeOwned
 
 pub struct Monitor {
   _watcher: RecommendedWatcher,
@@ -21,7 +21,7 @@ impl Monitor {
   ) -> Result<Self, anyhow::Error>
   where
     P: AsRef<Path>,
-    T: for<'a> Deserialize<'a> + Dispatchable + Send + 'static,
+    T: for<'a> Deserialize<'a> + Dispatch + Send + 'static,
   {
     let opath = path.as_ref().to_path_buf();
     let mut _watcher = notify::recommended_watcher(move |res| {
@@ -54,9 +54,10 @@ pub struct Manager<T> {
 }
 
 impl<T> Manager<T> {
-  pub fn with_path<P: AsRef<Path>>(path: P) -> Result<Self, anyhow::Error>
+  pub fn with_path<F>(path: F) -> Result<Self, anyhow::Error>
   where
-    T: for<'a> Deserialize<'a> + Dispatchable + Send + Default + 'static,
+    F: AsRef<Path>,
+    T: for<'a> Deserialize<'a> + Dispatch + Send + Default + 'static,
   {
     let dispatch_toml = fs::read_to_string(&path)?;
     // config can be in an unstable state in the beginning; it will start with 0 keybinds
@@ -72,14 +73,14 @@ impl<T> Manager<T> {
 
   pub fn resolve(&self, id: u32) -> Option<Script>
   where
-    T: Dispatchable,
+    T: Dispatch,
   {
     self.config.lock().unwrap().scriptify(id)
   }
 
   pub fn hotkeys(&self) -> Vec<HotKey>
   where
-    T: Dispatchable,
+    T: Dispatch,
   {
     self.config.lock().unwrap().hotkeys()
   }
@@ -94,7 +95,7 @@ pub struct Config {
   pub commands: Vec<Command>,
 }
 
-impl Dispatchable for Config {
+impl Dispatch for Config {
   fn hotkeys(&self) -> Vec<HotKey> {
     self.commands.iter().map(Command::as_hotkey).collect()
   }

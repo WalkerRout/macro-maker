@@ -7,7 +7,7 @@ use log4rs::{
   encode::pattern::PatternEncoder,
 };
 
-use macro_maker::dispatcher::Dispatcher;
+use macro_maker::dispatcher::DefaultDispatcher;
 
 fn run() -> Result<(), anyhow::Error> {
   #[cfg(target_os = "macos")]
@@ -20,15 +20,16 @@ fn run() -> Result<(), anyhow::Error> {
     // run with:
     // $ nohup main &> /dev/null &
     log::info!("STARTING");
-    let mut dispatcher = Dispatcher::from_path("dispatch.toml")?;
+    let mut dispatcher = DefaultDispatcher::from_path("dispatch.toml")?;
     dispatcher.listen();
-    log::info!("STOPPING");
+    log::info!("STOPPING\n");
   }
 
   #[cfg(target_os = "windows")]
   {
+    // run by double clicking
     log::info!("STARTING");
-    let mut dispatcher = Dispatcher::from_path("dispatch.toml")?;
+    let mut dispatcher = DefaultDispatcher::from_path("dispatch.toml")?;
     dispatcher.listen();
     log::info!("STOPPING\n");
   }
