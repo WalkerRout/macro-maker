@@ -14,13 +14,13 @@ pub struct Monitor {
 }
 
 impl Monitor {
-  fn watch<T, P>(
-    path: P,
+  fn watch<T, F>(
+    path: F,
     config: Arc<Mutex<T>>,
     update_tx: Sender<()>,
   ) -> Result<Self, anyhow::Error>
   where
-    P: AsRef<Path>,
+    F: AsRef<Path>,
     T: for<'a> Deserialize<'a> + Dispatch + Send + 'static,
   {
     let opath = path.as_ref().to_path_buf();
