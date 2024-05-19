@@ -1,11 +1,34 @@
 use std::marker::PhantomData;
 use std::mem;
-use std::thread;
+use std::thread::{self, JoinHandle};
 
 use async_process::Command;
 use tokio::runtime::Builder;
 
-use crate::{Process, ProcessorGuard, Receiver, Script};
+use crate::{Receiver, Script};
+
+pub trait Process {
+  fn with_receiver(rx: Receiver<Script>) -> Self;
+  fn process_incoming_scripts(&mut self) -> ProcessorGuard<'_>;
+}
+
+#[derive(Debug)]
+pub struct ProcessorGuard<'a> {
+  handle: Option<JoinHandle<()>>,
+  _phantom: PhantomData<&'a ()>,
+}
+
+impl<'a> Drop for ProcessorGuard<'a> {
+  fn drop(&mut self) {
+    if let Some(handle) = mem::take(&mut self.handle) {
+      if let Err(e) = handle.join() {
+        log::error!("failed to join Processor with {e:?}");
+      } else {
+        log::info!("Processor terminated")
+      }
+    }
+  }
+}
 
 #[derive(Debug, Default)]
 pub struct Processor {

@@ -2,9 +2,9 @@ use std::path::Path;
 use std::sync::mpsc;
 
 use crate::manager::{Config, Manager};
-use crate::processor::Processor;
-use crate::transmitter::Transmitter;
-use crate::{Process, Script, Transmit};
+use crate::process::{Process, Processor};
+use crate::transmit::{Transmit, Transmitter};
+use crate::Script;
 
 /// Handles registering a file and starting the event loop
 pub struct Dispatcher<P, T> {

@@ -6,7 +6,14 @@ use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, HotKeyState};
 use winit::event_loop::{ControlFlow, EventLoopBuilder, EventLoopWindowTarget};
 
 use crate::manager::{exit_key, Manager};
-use crate::{Dispatch, Script, Sender, Transmit};
+use crate::{Dispatch, Script, Sender};
+
+pub trait Transmit {
+  fn with_sender(tx: Sender<Script>) -> Self;
+  fn listen_for_hotkeys<T>(&mut self, manager: &Manager<T>)
+  where
+    T: Dispatch;
+}
 
 #[derive(Debug)]
 pub struct Transmitter {
