@@ -13,14 +13,19 @@ pub struct Dispatcher<P, T> {
   transmitter: T,
 }
 
-pub type DefaultDispatcher = Dispatcher<Processor, Transmitter>;
-
 impl<P, T> Dispatcher<P, T>
 where
   P: Process,
   T: Transmit,
 {
-  pub fn from_path<F>(path: F) -> Result<DefaultDispatcher, anyhow::Error>
+  pub fn listen(&mut self) {
+    let _phandle = self.processor.process_incoming_scripts();
+    self.transmitter.listen_for_hotkeys(&self.manager);
+  }
+}
+
+impl Dispatcher<Processor, Transmitter> {
+  pub fn from_path<F>(path: F) -> Result<Self, anyhow::Error>
   where
     F: AsRef<Path>,
   {
@@ -30,21 +35,10 @@ where
     let processor = Processor::with_receiver(script_rx);
     let transmitter = Transmitter::with_sender(script_tx);
 
-    Ok(DefaultDispatcher {
+    Ok(Self {
       manager,
       processor,
       transmitter,
     })
   }
-
-  pub fn listen(&mut self) {
-    let _phandle = self.processor.process_incoming_scripts();
-    self.transmitter.listen_for_hotkeys(&self.manager);
-  }
 }
-
-/*
-
-
-
-*/
